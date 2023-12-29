@@ -18,7 +18,16 @@ DsLocalizationAutoware::DsLocalizationAutoware(const rclcpp::NodeOptions & node_
   orientation_sub_ = create_subscription<geometry_msgs::msg::Quaternion>("oxts_orientation_autoware", rclcpp::QoS{1},std::bind(&DsLocalizationAutoware::callbackOrientation, this, std::placeholders::_1));
   
   oxts_pose_autoware_pub_ = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("oxts_pose_autoware", rclcpp::QoS{1});
-  _br = std::make_shared<tf2_ros::TransformBroadcaster>(this,100);
+
+  setupTF();
+}
+
+void DsLocalizationAutoware::setupTF()
+{
+    tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+    _br = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+
 }
 
 void DsLocalizationAutoware::callbackOrientation(geometry_msgs::msg::Quaternion msg)

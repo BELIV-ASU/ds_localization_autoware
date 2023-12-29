@@ -20,20 +20,19 @@ class DsLocalizationAutoware : public rclcpp::Node
 {
 public:
   explicit DsLocalizationAutoware(const rclcpp::NodeOptions & node_options);
-  bool _initial_pose_estimated = false;
 
 private:
   void callbackAutowareLocalization(geometry_msgs::msg::PoseWithCovarianceStamped oxts_pose);
   void callbackOrientation(geometry_msgs::msg::Quaternion msg);
   
+  void setupTF();
+
   std::string _node_name = "ds_localization_autoware";
     
   rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr oxts_pose_autoware_sub_;
   rclcpp::Subscription<geometry_msgs::msg::Quaternion>::SharedPtr orientation_sub_;
-  
-  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr _pub3;
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr oxts_pose_autoware_pub_;
-  rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr _client_ekf_trigger;
+
   std::shared_ptr<tf2_ros::TransformBroadcaster> _br;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   // Buffer that stores several seconds of transforms for easy lookup by the listener
