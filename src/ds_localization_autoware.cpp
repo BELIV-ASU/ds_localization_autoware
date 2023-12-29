@@ -86,22 +86,9 @@ void DsLocalizationAutoware::callbackAutowareLocalization(geometry_msgs::msg::Po
   // Renormarlize the quaternion
 
   autoware_pose.pose.covariance = oxts_pose.pose.covariance;
-  //autoware_pose.pose.covariance = {0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; // ndt covariance settings
-  //autoware_pose.pose.covariance = {10000,0,0,0,0,0,0,2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,7.615435494667714e-05,0,0,0,0,0,0,10000.0,0,0,0,0,0,0,0.001}; //eagleye covariance setting
-  autoware_pose.pose.covariance[21] = 0.000625;
-  autoware_pose.pose.covariance[28] = 0.000625;
-  autoware_pose.pose.covariance[35] = 0.000625;
-  
-  geometry_msgs::msg::PoseStamped target_pose_from_cam;
-  target_pose_from_cam.header = autoware_pose.header;
-  target_pose_from_cam.pose = autoware_pose.pose.pose;
-
-  geometry_msgs::msg::PoseStamped pose_out_;
-  tf_buffer_->transform<geometry_msgs::msg::PoseStamped>(target_pose_from_cam, pose_out_, "new_map",
-                tf2::Duration(std::chrono::seconds(1)));
- 
-  autoware_pose.pose.pose = pose_out_.pose.pose;
-  
+  autoware_pose.pose.covariance = {0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; // ndt covariance settings
+  //autoware_pose.pose.covariance = {2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,7.615435494667714e-05,0,0,0,0,0,0,10000.0,0,0,0,0,0,0,0.001}; eagleye covariance setting
+  //autoware_pose.pose.covariance = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; eagleye covariance setting
   oxts_pose_autoware_pub_->publish(autoware_pose);
   // initialize the pose on the map
   
