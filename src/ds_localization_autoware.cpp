@@ -1,23 +1,4 @@
-// Copyright 2020 Tier IV, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include "ds_localization_autoware/ds_localization_autoware.hpp"
-#ifdef ROS_DISTRO_GALACTIC
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#else
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#endif
 #include <GeographicLib/MGRS.hpp>
 #include <GeographicLib/UTMUPS.hpp>
 #include <algorithm>
@@ -26,8 +7,6 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-
-
 
 namespace ds_localization_autoware
 {
@@ -39,11 +18,8 @@ DsLocalizationAutoware::DsLocalizationAutoware(const rclcpp::NodeOptions & node_
   orientation_sub_ = create_subscription<geometry_msgs::msg::Quaternion>("oxts_orientation_autoware", rclcpp::QoS{1},std::bind(&DsLocalizationAutoware::callbackOrientation, this, std::placeholders::_1));
   
   oxts_pose_autoware_pub_ = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("oxts_pose_autoware", rclcpp::QoS{1});
-  _pub3 = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/initialpose3d", 1000);
-  _client_ekf_trigger = create_client<std_srvs::srv::SetBool>("ekf_trigger_node");
   _br = std::make_shared<tf2_ros::TransformBroadcaster>(this,100);
 }
-
 
 void DsLocalizationAutoware::callbackOrientation(geometry_msgs::msg::Quaternion msg)
 {
@@ -94,9 +70,16 @@ void DsLocalizationAutoware::callbackAutowareLocalization(geometry_msgs::msg::Po
   target_pose_in_mgrs_frame.pose = autoware_pose.pose.pose;
 
   geometry_msgs::msg::PoseStamped target_pose_in_local_frame;
-  tf_buffer_->transform<geometry_msgs::msg::PoseStamped>(target_pose_in_mgrs_frame, target_pose_in_local_frame, "new_map",
+  try
+  {
+    tf_buffer_->transform<geometry_msgs::msg::PoseStamped>(target_pose_in_mgrs_frame, target_pose_in_local_frame, "local_map",
                 tf2::Duration(std::chrono::seconds(1)));
- 
+  }
+  catch (const tf2::TransformException & ex)
+  {
+    RCLCPP_WARN(get_logger(),"Could not transform vehicle pose in local map frame");
+  }
+  
   autoware_pose.pose.pose = target_pose_in_local_frame.pose;
   
   oxts_pose_autoware_pub_->publish(autoware_pose);
@@ -118,9 +101,6 @@ void DsLocalizationAutoware::callbackAutowareLocalization(geometry_msgs::msg::Po
   trans_msg.transform = tf2::toMsg(transform);
   _br->sendTransform(trans_msg);
 }
-
-
-
   
 } 
 
