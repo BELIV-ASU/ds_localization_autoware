@@ -27,7 +27,11 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "tf2/exceptions.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 #include <std_srvs/srv/set_bool.hpp>
 #include "tf2_ros/transform_broadcaster.h"
 #include <string>
@@ -53,6 +57,9 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr oxts_pose_autoware_pub_;
   rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr _client_ekf_trigger;
   std::shared_ptr<tf2_ros::TransformBroadcaster> _br;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  // Buffer that stores several seconds of transforms for easy lookup by the listener
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   
 
   geometry_msgs::msg::PoseWithCovarianceStamped autoware_pose;

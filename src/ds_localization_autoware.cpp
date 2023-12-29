@@ -78,32 +78,28 @@ void DsLocalizationAutoware::callbackAutowareLocalization(geometry_msgs::msg::Po
   //autoware_pose.pose.pose.position.y = utm_y;
   //autoware_pose.pose.pose.position.z = utm_z;
   
-  // Convert the UTM orientation to MGRS orientation
-  
-  
   // Keep UTM orientation
   autoware_pose.pose.pose.orientation = oxts_pose.pose.pose.orientation;
   // Renormarlize the quaternion
 
   autoware_pose.pose.covariance = oxts_pose.pose.covariance;
-  autoware_pose.pose.covariance = {0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; // ndt covariance settings
-  //autoware_pose.pose.covariance = {2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,7.615435494667714e-05,0,0,0,0,0,0,10000.0,0,0,0,0,0,0,0.001}; eagleye covariance setting
-  //autoware_pose.pose.covariance = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; eagleye covariance setting
-  oxts_pose_autoware_pub_->publish(autoware_pose);
-  // initialize the pose on the map
+  //autoware_pose.pose.covariance = {0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.0225,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625,0,0,0,0,0,0,0.000625}; // ndt covariance settings
+  //autoware_pose.pose.covariance = {10000,0,0,0,0,0,0,2.25,0,0,0,0,0,0,2.25,0,0,0,0,0,0,7.615435494667714e-05,0,0,0,0,0,0,10000.0,0,0,0,0,0,0,0.001}; //eagleye covariance setting
+  autoware_pose.pose.covariance[21] = 0.000625;
+  autoware_pose.pose.covariance[28] = 0.000625;
+  autoware_pose.pose.covariance[35] = 0.000625;
   
-  /*if(!_initial_pose_estimated)
-  {
-    _pub3->publish(autoware_pose);
-    _initial_pose_estimated = true;
+  geometry_msgs::msg::PoseStamped target_pose_in_mgrs_frame;
+  target_pose_in_mgrs_frame.header = autoware_pose.header;
+  target_pose_in_mgrs_frame.pose = autoware_pose.pose.pose;
 
-    const auto req = std::make_shared<std_srvs::srv::SetBool::Request>();
-    req->data = true;
-    if (!_client_ekf_trigger->service_is_ready()) {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "EKF localizar triggering service is not ready");
-    }
-    auto future_ekf = _client_ekf_trigger->async_send_request(req);
-  }*/
+  geometry_msgs::msg::PoseStamped target_pose_in_local_frame;
+  tf_buffer_->transform<geometry_msgs::msg::PoseStamped>(target_pose_in_mgrs_frame, target_pose_in_local_frame, "new_map",
+                tf2::Duration(std::chrono::seconds(1)));
+ 
+  autoware_pose.pose.pose = target_pose_in_local_frame.pose;
+  
+  oxts_pose_autoware_pub_->publish(autoware_pose);
   
   // publish tf 
   tf2::Transform transform;
