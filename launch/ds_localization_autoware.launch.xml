@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="input_topic_pose" default="/sensing/gnss/oxts/pose_with_covariance"/>
+  <arg name="input_topic_orientation" default="/sensing/gnss/oxts/orientation"/>
+  
+  <arg name="output_topic_pose" default="/localization/pose_estimator/pose_with_covariance"/>
+
+
+  <node pkg="ds_localization_autoware" exec="ds_localization_autoware" name="ds_localization_autoware" output="screen">
+    <remap from="oxts_pose_ds" to="$(var input_topic_pose)"/>
+    <remap from="oxts_orientation_autoware" to="$(var input_topic_orientation)"/>
+    <remap from="oxts_pose_autoware" to="$(var output_topic_pose)"/>
+
+  </node>
+</launch>
